@@ -1,15 +1,19 @@
+from copy import deepcopy
 from pprint import pprint
 import random
+import time
 from parsing import parse_file
 import sys
 
-MAX_DEPTH = 999
 
+def solver_dfs(stocks, processes, optimization, final_time):
+    MAX_DEPTH = 999
 
-def dfs(stocks, processes, optimization):
     def helper(operations, current_cycles, depth):
-        nonlocal best_cycles, best_operations, best_stocks
-        if current_cycles >= best_cycles or depth >= MAX_DEPTH:
+        nonlocal best_cycles, best_operations, best_stocks, max_recursion_limit, timeout
+        max_recursion_limit = depth >= MAX_DEPTH
+        timeout = time.time() > final_time
+        if current_cycles >= best_cycles or max_recursion_limit or timeout:
             return
         if stocks[optimization.stock_name] > 0:
             best_cycles = current_cycles
@@ -34,22 +38,37 @@ def dfs(stocks, processes, optimization):
     best_cycles = sys.maxsize
     best_operations = None
     best_stocks = None
+    max_recursion_limit = timeout = False
     helper([], 0, 0)
-    return best_cycles, best_operations, best_stocks
+    return best_cycles, best_operations, best_stocks, max_recursion_limit, timeout
 
 
 def main():
     try:
         assert len(sys.argv) == 3
         max_delay = float(sys.argv[2])  # TODO: use in each solving function
+        assert max_delay > 0
+        final_time = time.time() + max_delay
     except (AssertionError, ValueError):
         print(f"Usage: python {sys.argv[0]} <filename> <max_delay>", file=sys.stderr)
         print(f"Example: python {sys.argv[0]} resources/steak 3.14", file=sys.stderr)
         sys.exit(1)
     stocks, processes, optimization = parse_file(sys.argv[1])
+    assert optimization.is_time, "for now"
     print(f"{sys.argv[1]} parsed succesfully")
-    pprint(stocks)
-    print(dfs(stocks, processes, optimization))
+    best_cycles, best_operations, best_stocks, max_recursion_limit, timeout = (
+        solver_dfs(stocks, processes, optimization, final_time)
+    )
+    if best_operations is None:
+        print(
+            "Time limit exceeded"
+            if timeout
+            else "Max recursion limit"
+            if max_recursion_limit
+            else f"Impossible to create {optimization.stock_name}"
+        )
+    else:
+        print(best_cycles, best_operations, best_stocks)
 
 
 if __name__ == "__main__":
