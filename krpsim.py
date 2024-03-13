@@ -1,10 +1,12 @@
 from copy import deepcopy
+from heapq import heappop
 from pprint import pprint
 import random
 import time
 from parsing import parse_file
 import sys
 
+class Solution
 
 def solver_dfs(stocks, processes, optimization, final_time):
     MAX_DEPTH = 999
@@ -43,6 +45,19 @@ def solver_dfs(stocks, processes, optimization, final_time):
     return best_cycles, best_operations, best_stocks, max_recursion_limit, timeout
 
 
+def solver_greedy(stocks, processes, optimization, final_time):
+    MAX_OPERATIONS = 10**6
+    heap = [(0, [], deepcopy(stocks))]
+    best_cycles = sys.maxsize
+    best_operations = None
+    best_stocks = None
+    max_recursion_limit = timeout = False
+    for _ in range(MAX_OPERATIONS):
+        current_cycles, current_operations, current_stocks = heappop(heap)
+
+    return best_cycles, best_operations, best_stocks, max_recursion_limit, timeout
+
+
 def main():
     try:
         assert len(sys.argv) == 3
@@ -57,7 +72,7 @@ def main():
     assert optimization.is_time, "for now"
     print(f"{sys.argv[1]} parsed succesfully")
     best_cycles, best_operations, best_stocks, max_recursion_limit, timeout = (
-        solver_dfs(stocks, processes, optimization, final_time)
+        solver_greedy(stocks, processes, optimization, final_time)
     )
     if best_operations is None:
         print(
