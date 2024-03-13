@@ -1,6 +1,5 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from pprint import pprint
 import re
 import sys
 from typing import List, Dict
@@ -13,6 +12,7 @@ REGEX_DICT = r"(\((?:\w+):(?:\d+)(?:;(?:\w+):(?:\d+))*\))"
 
 @dataclass
 class Process:
+    name: str
     inputs: List[Dict[str, int]]
     outputs: List[Dict[str, int]]
     nb_cycles: int
@@ -35,7 +35,7 @@ def __parse_process_dict(s):
 
 def parse_file(filename):
     stocks = defaultdict(int)
-    processes = dict()
+    processes = []
     optimization = None
     for line in open(filename):
         if line.startswith("#"):
@@ -52,13 +52,16 @@ def parse_file(filename):
         process_match = re.fullmatch(rf"(\w+):{REGEX_DICT}:{REGEX_DICT}:(\d+)", line)
         if process_match:
             name, inputs, outputs, nb_cycles = process_match.groups()
-            if name in processes:
+            if any(p.name == name for p in processes):
                 print("DOUBLON PROCESS", file=sys.stderr)
                 sys.exit(1)
-            processes[name] = Process(
-                __parse_process_dict(inputs),
-                __parse_process_dict(outputs),
-                int(nb_cycles),
+            processes.append(
+                Process(
+                    name,
+                    __parse_process_dict(inputs),
+                    __parse_process_dict(outputs),
+                    int(nb_cycles),
+                )
             )
             continue
         optimize_match = re.fullmatch(r"optimize:\((time;)?(\w+)\)", line)
@@ -72,6 +75,3 @@ def parse_file(filename):
         print(f"Failed to parse line: {line}", file=sys.stderr)
         sys.exit(1)
     return stocks, processes, optimization
-    pprint(stocks)
-    pprint(processes)
-    pprint(optimization)
