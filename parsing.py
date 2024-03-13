@@ -1,3 +1,4 @@
+from collections import defaultdict
 from dataclasses import dataclass
 from pprint import pprint
 import re
@@ -33,7 +34,7 @@ def __parse_process_dict(s):
 
 
 def parse_file(filename):
-    stocks = dict()
+    stocks = defaultdict(int)
     processes = dict()
     optimization = None
     for line in open(filename):
